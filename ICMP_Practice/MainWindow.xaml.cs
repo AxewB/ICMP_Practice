@@ -3,12 +3,15 @@ using System;
 using System.Collections.Generic;
 using System.Windows;
 using Newtonsoft.Json;
+using System.Text.RegularExpressions;
 
 namespace ICMP_Practice
 {
     /// <summary>
     /// Логика взаимодействия для MainWindow.xaml
     /// </summary>
+
+
     public partial class MainWindow : Window
     {
         List<Router> routers = new List<Router>();
@@ -20,7 +23,7 @@ namespace ICMP_Practice
 
         private void LaunchButton_Click(object sender, RoutedEventArgs e)
         {
-            routers.Clear();
+            //routers.Clear();
             string remoteHostsStr = IPRangeTextBox.Text.ToString();
 
             if (remoteHostsStr == null)
@@ -93,7 +96,7 @@ namespace ICMP_Practice
 
 
             List<Device> devices = new List<Device>();
-            List<Subnet> subnets = new List<Subnet>();
+            List<Router> routers = new List<Router>();
 
 
             int devicesCount =
@@ -138,61 +141,85 @@ namespace ICMP_Practice
             //TODO: сделать вывод количества устройств
             //Console.WriteLine("DC: " + devices.Count);
             string routersStr = RouterIPsTextBox.Text;
-            string[] subnetList = routersStr.Split(',');
-            string routerName = "";
-            foreach (string item in subnetList)
+
+
+
+
+            /// код deVDem
+            try
             {
-                routerName += " " + item;
-            }
-            foreach (string routerStr in subnetList)
-            {
-                Subnet subnet = new Subnet(routerStr);
-                subnets.Add(subnet);
-                Device removeDevice = null;
-                foreach (Device device in devices)
+                // регулярОЧКА для получения данных из фиг. скобок "{данные}"
+                Regex regular = new Regex("{(.*?)}", RegexOptions.Compiled);
+                string[] routersD = regular.Split(routersStr); // получаем ip-адреса роутеров, но почему-то через одного в массиве, пофиг, заговнокодим и уберём через 1
+
+
+                foreach (string router in routersD)
                 {
-                    if (device.ip == routerStr)
+                    if (router != "")
                     {
-                        removeDevice = device;
-                        continue;
-                    }
-                    int[] devStartOctets = device.getStartOctets();
-                    int[] routerStartOctets = subnet.getStartOctets();
-                    subnet.ip = routerStartOctets[0] + "." + routerStartOctets[1] + "." + routerStartOctets[2] + "." + "0";
-                    if (devStartOctets[0] == routerStartOctets[0] &&
-                        devStartOctets[1] == routerStartOctets[1] &&
-                        devStartOctets[2] == routerStartOctets[2])
-                    {
-                        subnet.devices.Add(device);
+                        Router routerClass = new Router();
+                        routerClass.name = router;
+                        string[] subnetList = router.Split(',');
+
+                        foreach (string subnet in subnetList)
+                        {
+                            Subnet subnetClass = new Subnet(subnet);
+                            routerClass.subnets.Add(subnetClass);
+                            Device removeDevice = null;
+                            foreach (Device device in devices)
+                            {
+                                if (device.ip == router)
+                                {
+                                    removeDevice = device;
+                                    continue;
+                                }
+                                int[] devStartOctets = device.getStartOctets();
+                                int[] routerStartOctets = subnetClass.getStartOctets();
+                                subnetClass.ip = routerStartOctets[0] + "." + routerStartOctets[1] + "." + routerStartOctets[2] + "." + "0";
+                                if (devStartOctets[0] == routerStartOctets[0] &&
+                                    devStartOctets[1] == routerStartOctets[1] &&
+                                    devStartOctets[2] == routerStartOctets[2])
+                                {
+                                    subnetClass.devices.Add(device);
+                                }
+                            }
+                            devices.Remove(removeDevice);
+                        }
+                        routers.Add(routerClass);
                     }
                 }
-                devices.Remove(removeDevice);
-            }
 
-            
-            foreach (Subnet subnet in subnets)
-            {
-                subnet.StartPing();
-            }
-            PingedDevicesListView.Items.Clear();
-            foreach (Subnet subnet in subnets)
-            {
-                foreach (Device device in subnet.devices)
+                SaveData();
+
+                /// конец кода devdem
+
+                foreach (Router r in routers)
                 {
-                    IPInfo info = new IPInfo(device.ip, device.pinged);
-                    PingedDevicesListView.Items.Add(info);
+                    foreach (Subnet item in r.subnets)
+                    {
+                        item.StartPing();
+                    }
                 }
+                PingedDevicesListView.Items.Clear();
+
+                foreach (Router r in routers)
+                {
+                    foreach (Subnet subnet in r.subnets)
+                    {
+                        foreach (Device device in subnet.devices)
+                        {
+                            IPInfo info = new IPInfo(device.ip, device.pinged);
+                            PingedDevicesListView.Items.Add(info);
+                        }
+                    }
+                }
+
+                GraphVisual graphVisual = new GraphVisual(routers);
+                graphVisual.Show();
+            } catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message);
             }
-
-
-            Router router1 = new Router();
-            router1.subnets = subnets;
-            router1.name = routerName;
-            routers.Add(router1);
-
-            SaveData();
-            GraphVisual graphVisual = new GraphVisual(routers);
-            graphVisual.Show();
         }
 
         void SaveData()
@@ -278,7 +305,7 @@ namespace ICMP_Practice
                 Device device2 = new Device("192.168.41.62");
                 device1.pinged = true;
                 device2.pinged = true;
-                
+
                 subnet.devices.Add(device1);
                 subnet.devices.Add(device2);
 

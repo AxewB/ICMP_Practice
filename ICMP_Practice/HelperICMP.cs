@@ -38,7 +38,7 @@ namespace ICMP_Practice
 
             UInt16 chcksum = packet.getChecksum();
             packet.Checksum = chcksum;
-            host.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReceiveTimeout, 50);
+            host.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReceiveTimeout, 5000);
 
             host.SendTo(packet.getBytes(), packetsize, SocketFlags.None, iep);
 
