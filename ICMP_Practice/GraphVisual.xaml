@@ -7,6 +7,11 @@
         mc:Ignorable="d"
         Title="GraphVisual" Height="600" Width="1000">
     <Grid x:Name="MainGrid">
-        <Image x:Name="sheet" Height="450" Width="800"></Image>
+        <Image x:Name="sheet" Stretch="Uniform"></Image>
+        <Button x:Name="SavePictureButton" Content="Сохранить в png" 
+                HorizontalAlignment="Left" VerticalAlignment="Top"
+                Height="40" Width="120" Margin="10" Click="SavePictureButton_Click">
+            
+        </Button>
     </Grid>
 </Window>

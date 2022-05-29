@@ -45,7 +45,7 @@ namespace ICMP_Practice
         Font fo;
         Brush br;
         PointF point;
-        public int R = 15; //радиус окружности вершины
+        public int R = 14; //радиус окружности вершины
 
         public DrawGraph(int width, int height)
         {
@@ -74,10 +74,19 @@ namespace ICMP_Practice
 
         public void drawVertex(int x, int y, string number)
         {
-            gr.FillEllipse(Brushes.White, (x - R), (y - R), 2 * R, 2 * R);
-            gr.DrawEllipse(blackPen, (x - R), (y - R), 2 * R, 2 * R);
-            point = new PointF(x - 20, y + 20);
-            gr.DrawString(number, fo, br, point);
+            StringFormat sf = new StringFormat();
+            sf.LineAlignment = StringAlignment.Center;
+            sf.Alignment = StringAlignment.Center;
+            
+            
+            gr.FillEllipse(Brushes.White, (x - R*4), (y - R), 8 * R, 2 * R);
+            gr.DrawEllipse(blackPen, (x - R*4), (y - R), 8 * R, 2 * R);
+            if (number.Length > 15)
+            {
+                point = new PointF(x, y - 20);
+            }
+            else point = new PointF(x, y);
+            gr.DrawString(number, fo, br, point, sf);
         }
 
         public void drawSelectedVertex(int x, int y)
@@ -94,13 +103,11 @@ namespace ICMP_Practice
                 {
                     gr.DrawArc(darkGoldPen, (E[i].v1.x - 2 * R), (E[i].v1.y - 2 * R), 2 * R, 2 * R, 90, 270);
                     point = new PointF(E[i].v1.x - (int)(2.75 * R), E[i].v1.y - (int)(2.75 * R));
-                    //gr.DrawString(((char)('a' + i)).ToString(), fo, br, point);
                 }
                 else
                 {
                     gr.DrawLine(darkGoldPen, E[i].v1.x, E[i].v1.y, E[i].v2.x, E[i].v2.y);
                     point = new PointF((E[i].v1.x + E[i].v2.x) / 2, (E[i].v1.y + E[i].v2.y) / 2);
-                    //gr.DrawString(((char)('a' + i)).ToString(), fo, br, point);
                 }
             }
             //рисуем вершины

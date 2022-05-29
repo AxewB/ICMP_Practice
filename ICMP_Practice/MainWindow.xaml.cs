@@ -138,19 +138,17 @@ namespace ICMP_Practice
                 devices.Add(new Device(newIp));
             }
 
-            //TODO: сделать вывод количества устройств
-            //Console.WriteLine("DC: " + devices.Count);
             string routersStr = RouterIPsTextBox.Text;
 
 
 
 
-            /// код deVDem
+            /// ---
             try
             {
-                // регулярОЧКА для получения данных из фиг. скобок "{данные}"
+                // Получение данных, разделяя по фигурным скобкам "{данные}"
                 Regex regular = new Regex("{(.*?)}", RegexOptions.Compiled);
-                string[] routersD = regular.Split(routersStr); // получаем ip-адреса роутеров, но почему-то через одного в массиве, пофиг, заговнокодим и уберём через 1
+                string[] routersD = regular.Split(routersStr); // получаем ip-адреса роутеров
 
 
                 foreach (string router in routersD)
@@ -188,10 +186,9 @@ namespace ICMP_Practice
                         routers.Add(routerClass);
                     }
                 }
-
                 SaveData();
 
-                /// конец кода devdem
+                /// ---
 
                 foreach (Router r in routers)
                 {
@@ -258,15 +255,6 @@ namespace ICMP_Practice
 
             IPRangeTextBox.Text = save_class.ip_range;
             RouterIPsTextBox.Text = save_class.subnets;
-            //for (int i = 0; i < routers.Count; i++)
-            //{
-            //    if (i == 0)
-            //    {
-            //        RouterIPsTextBox.Text += routers[i].name;
-            //    }
-            //    else RouterIPsTextBox.Text += "," + routers[i].name;
-            //}
-
         }
         private void RemoveIPButton_Click(object sender, RoutedEventArgs e)
         {

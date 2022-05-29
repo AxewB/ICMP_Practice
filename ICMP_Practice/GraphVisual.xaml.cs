@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Drawing;
+using System.Drawing.Imaging;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -21,16 +22,38 @@ namespace ICMP_Practice
     /// </summary>
     public partial class GraphVisual : Window
     {
+        Bitmap image;
         public GraphVisual(List<Router> routers)
         {
             InitializeComponent();
             List<Vertex> vertices = new List<Vertex>();
             List<Edge> edges = new List<Edge>();
 
-            float main_w = (float)sheet.Width / routers.Count;
+           
+
+            int devicesCount = 0;
+            int R = 15;
+
+            foreach (Router rout in routers)
+            {
+                foreach (Subnet subnet in rout.subnets)
+                {
+                    foreach (Device device in subnet.devices)
+                    {
+                        if (device.pinged)
+                        {
+                            devicesCount++;
+                        }
+                    }
+                }
+            }
 
             int j = 1, i = 1, k = 1;
             Vertex prev_vert = null;
+
+            int bitmapWidth = R * 16 * devicesCount;
+            int bitmapHeight = R * 4 * 4;
+            float main_w = bitmapWidth / routers.Count;
 
             foreach (Router router in routers)
             {
@@ -79,9 +102,11 @@ namespace ICMP_Practice
                 j++;
             }
 
-            DrawGraph drawGraph = new DrawGraph((int)sheet.Width, (int)sheet.Height);
+            DrawGraph drawGraph = new DrawGraph(bitmapWidth, bitmapHeight);
             drawGraph.drawALLGraph(vertices, edges);
+            image = drawGraph.GetBitmap();
             sheet.Source = BitmapToImageSource(drawGraph.GetBitmap());
+            
         }
 
         BitmapImage BitmapToImageSource(Bitmap bitmap)
@@ -101,5 +126,18 @@ namespace ICMP_Practice
 
         }
 
+        private void SavePictureButton_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                image.Save("Graph.png", ImageFormat.Png);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message);
+                return;
+            }
+            MessageBox.Show("Картинка сохранена");
+        }
     }
 }

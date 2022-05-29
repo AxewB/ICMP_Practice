@@ -20,35 +20,48 @@ namespace ICMP_Practice
 
         public bool StartPing(string address)
         {
-            byte[] data = new byte[1024];
-            int recv = 0;
             Socket host = new Socket(AddressFamily.InterNetwork, SocketType.Raw, ProtocolType.Icmp);
+            //Устанавливаем тайм-аут для функции ReceiveFrom()
+            host.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReceiveTimeout, 50);
+
+            //Создаем icmp пакет и задаем ему нужные параметры
             ICMP packet = new ICMP();
-            IPEndPoint iep = new IPEndPoint(IPAddress.Parse(address), 0);
-            EndPoint ep = (EndPoint)iep;
-            packet.Type = 0x08;
-            packet.Code = 0x00;
-            packet.Checksum = 0;
-            Buffer.BlockCopy(BitConverter.GetBytes(1), 0, packet.Message, 0, 2);
-            Buffer.BlockCopy(BitConverter.GetBytes(1), 0, packet.Message, 2, 2);
-            data = Encoding.ASCII.GetBytes("test packet");
-            Buffer.BlockCopy(data, 0, packet.Message, 4, data.Length);
-            packet.MessageSize = data.Length + 4;
-            int packetsize = packet.MessageSize + 4;
+            packet.type = 0x08; //эхо-запрос
+            packet.code = 0x00;
+            packet.checksum = 0;
+            packet.sequnceId = 1;
+            packet.sequnceNumber = 1;
 
-            UInt16 chcksum = packet.getChecksum();
-            packet.Checksum = chcksum;
-            host.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReceiveTimeout, 5000);
+            //Создаем передаваемые данные
+            byte[] data = new byte[1024];
+            data = Encoding.ASCII.GetBytes("Test packet");
 
-            host.SendTo(packet.getBytes(), packetsize, SocketFlags.None, iep);
+            //Записываем их в ICMP пакет
+            Buffer.BlockCopy(data, 0, packet.message, 0, data.Length);
+            packet.messageSize = data.Length;
+
+            packet.getChecksum();
+
+            //Адрес получателя
+            IPEndPoint remoteEP = new IPEndPoint(IPAddress.Parse(address), 0);
+            EndPoint dumpEP = (EndPoint)remoteEP;
+
+            //Отправляем наше сообщение удаленному хосту
+            host.SendTo(packet.getBytes(), packet.messageSize + 8, SocketFlags.None, remoteEP);
 
             try
             {
+                //Буфер
                 data = new byte[1024];
-                recv = host.ReceiveFrom(data, ref ep);
-                ICMP response = new ICMP(data, recv);
 
-                if (response.Type == 0)
+                //Получаем ответный IP пакет
+                int ipDiagrammLength = host.ReceiveFrom(data, ref dumpEP);
+
+                //Из IP пакета извлекаем пакет ICMP
+                ICMP response = new ICMP(data, ipDiagrammLength);
+
+                //Проверка кода полученного сообщения, если это эхо-ответ, устройство есть в сети
+                if (response.type == 0)
                 {
                     return true;
                 }
