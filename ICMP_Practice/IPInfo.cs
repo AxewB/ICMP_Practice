@@ -6,6 +6,9 @@ using System.Threading.Tasks;
 
 namespace ICMP_Practice
 {
+    /// <summary>
+    /// Вспомогательный граф для отрисовки таблицы опрошенных устройств
+    /// </summary>
     public class IPInfo
     {
         public string ip { get; set; }

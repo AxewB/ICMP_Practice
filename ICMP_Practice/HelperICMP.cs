@@ -8,10 +8,12 @@ using System.Net.Sockets;
 
 namespace ICMP_Practice
 {
+    /// <summary>
+    /// Класс для формирования пакетов ICMP
+    /// </summary>
     public class HelperICMP
     {
         EndPoint ep;
-
 
         public HelperICMP(EndPoint endPoint)
         {
@@ -22,7 +24,7 @@ namespace ICMP_Practice
         {
             Socket host = new Socket(AddressFamily.InterNetwork, SocketType.Raw, ProtocolType.Icmp);
             //Устанавливаем тайм-аут для функции ReceiveFrom()
-            host.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReceiveTimeout, 50);
+            host.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReceiveTimeout, 200);
 
             //Создаем icmp пакет и задаем ему нужные параметры
             ICMP packet = new ICMP();

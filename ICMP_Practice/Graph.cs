@@ -10,11 +10,13 @@ using System.Threading.Tasks;
 
 namespace ICMP_Practice
 {
+    // Класс вершин
     class Vertex
     {
-        public string name;
-        public int x, y;
+        public string name; // Название вершины
+        public int x, y;    // Координаты вершины
 
+        // Конструктор для вершины
         public Vertex(int x, int y, string name)
         {
             this.x = x;
@@ -23,11 +25,13 @@ namespace ICMP_Practice
         }
     }
 
+    // Класс ребер
     class Edge
     {
-        //public int v1, v2;
+        // Вершины, которые соединяет ребро
         public Vertex v1, v2;
 
+        // Конструктор ребра
         public Edge(Vertex v1, Vertex v2)
         {
             this.v1 = v1;
@@ -37,16 +41,18 @@ namespace ICMP_Practice
 
     class DrawGraph
     {
-        Bitmap bitmap;
-        Pen blackPen;
-        Pen redPen;
-        Pen darkGoldPen;
-        Graphics gr;
-        Font fo;
-        Brush br;
-        PointF point;
-        public int R = 14; //радиус окружности вершины
+        // Инициализация переменных для отрисовки картинки графа
+        Bitmap bitmap;      // Класс массива битов картинки
+        Pen blackPen;       // "Ручка", отвечающая за черный цвет
+        Pen redPen;         // "Ручка", отвечающая за красный цвет
+        Pen darkGoldPen;    // "Ручка", отвечающая за желтый цвет
+        Graphics gr;        // Класс, отвечающий за рисование графа
+        Font fo;            // Шрифт
+        Brush br;           // Кисть
+        PointF point;       // Центр рисовки 
+        public int R = 14;  // Радиус окружности вершины
 
+        // Функция инициализации bitmap
         public DrawGraph(int width, int height)
         {
             bitmap = new Bitmap(width, height);
@@ -62,38 +68,41 @@ namespace ICMP_Practice
             br = Brushes.Black;
         }
 
+        // Функция для получения bitmap
         public Bitmap GetBitmap()
         {
             return bitmap;
         }
 
+        // Функция очистки bitmap
         public void clearSheet()
         {
             gr.Clear(Color.White);
-        }
 
+        }
+        
+        // Функция отрисовки вершин
         public void drawVertex(int x, int y, string number)
         {
             StringFormat sf = new StringFormat();
             sf.LineAlignment = StringAlignment.Center;
             sf.Alignment = StringAlignment.Center;
             
-            
+            // Рисуем эллипс с соответсвующими размерами и координатами
             gr.FillEllipse(Brushes.White, (x - R*4), (y - R), 8 * R, 2 * R);
             gr.DrawEllipse(blackPen, (x - R*4), (y - R), 8 * R, 2 * R);
+            
+            // Если длина строки больше 15, то это роутер, его название 
+            // отрисовываем иначе
             if (number.Length > 15)
             {
                 point = new PointF(x, y - 20);
             }
-            else point = new PointF(x, y);
+            else point = new PointF(x, y); // в ином случае это подсеть или устройство
             gr.DrawString(number, fo, br, point, sf);
         }
 
-        public void drawSelectedVertex(int x, int y)
-        {
-            gr.DrawEllipse(redPen, (x - R), (y - R), 2 * R, 2 * R);
-        }
-
+        
         public void drawALLGraph(List<Vertex> V, List<Edge> E)
         {
             //рисуем ребра

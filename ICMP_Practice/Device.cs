@@ -10,13 +10,14 @@ namespace ICMP_Practice
 {
     public class Device
     {
-        public EndPoint ipAddress;
-        public string ip;
-        public bool pinged;
+        
+        public EndPoint ipAddress;  // Класс IP адреса
+        public string ip;           // Строка с IP адресом
+        public bool pinged;         // Переменная, отвечающая на наличие устройства
 
         private HelperICMP helper;
 
-
+        // Конструктор класса 
         public Device(string ip)
         {
             this.ip = ip;
@@ -24,6 +25,7 @@ namespace ICMP_Practice
             helper = new HelperICMP(ipAddress);
         }
 
+        // Функция опроса устройства
         public bool StartPing()
         {
             for (int i = 0; i < 5; i++)
@@ -35,7 +37,8 @@ namespace ICMP_Practice
             return pinged;
         }
 
-
+        // Получение первых трех октетов для сравнения с подсетями
+        // для дальнейшего их распределения между подсетями
         public int[] getStartOctets()
         {
             int[] octets = new int[3];

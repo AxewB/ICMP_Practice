@@ -8,10 +8,15 @@ using System.Net.Sockets;
 
 namespace ICMP_Practice
 {
+    /// <summary>
+    /// Класс подсетей. Наследуется от класс устройств
+    /// </summary>
     public class Subnet : Device
     {
+        // Список возможных устройств подсети
         public List<Device> devices;
 
+        // Конструктор подсети
         public Subnet(string ip) : base(ip)
         {
             this.ip = ip;
@@ -19,6 +24,7 @@ namespace ICMP_Practice
             ipAddress = new IPEndPoint(IPAddress.Parse(ip), 0);
         }
 
+        // Фукнция опроса устройств
         public new void StartPing()
         {
             foreach (Device device in devices)

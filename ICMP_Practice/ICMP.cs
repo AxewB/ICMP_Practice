@@ -8,6 +8,9 @@ using System.Net.Sockets;
 
 namespace ICMP_Practice
 {
+    /// <summary>
+    /// Класс пакета ICMP
+    /// </summary>
     public class ICMP
     {
         public byte type;
@@ -23,11 +26,11 @@ namespace ICMP_Practice
 
         }
 
-        //Конструктор, создающий icmp пакет из  IP пакета
-        //ICMP пакеты инкапсулируются и передаются в IP пакетах
+        // Конструктор, создающий icmp пакет из  IP пакета
+        // ICMP пакеты инкапсулируются и передаются в IP пакетах
         public ICMP(byte[] ipDiagramm, int ipDiagrammLength)
         {
-            //В начале ipDiagramm идет заголовок IP, потому начинаем с 21 байта
+            // В начале ipDiagramm идет заголовок IP, потому начинаем с 21 байта
             type = ipDiagramm[20];
             code = ipDiagramm[21];
             checksum = BitConverter.ToUInt16(ipDiagramm, 22);
@@ -37,7 +40,7 @@ namespace ICMP_Practice
             Buffer.BlockCopy(ipDiagramm, 28, message, 0, messageSize);
         }
 
-        //Получить ICMP сообщение в байтах
+        // Получить ICMP сообщение в байтах
         public byte[] getBytes()
         {
             byte[] data = new byte[messageSize + 13];

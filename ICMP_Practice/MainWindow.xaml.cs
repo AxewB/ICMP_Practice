@@ -7,11 +7,6 @@ using System.Text.RegularExpressions;
 
 namespace ICMP_Practice
 {
-    /// <summary>
-    /// Логика взаимодействия для MainWindow.xaml
-    /// </summary>
-
-
     public partial class MainWindow : Window
     {
         List<Router> routers = new List<Router>();
@@ -23,15 +18,17 @@ namespace ICMP_Practice
 
         private void LaunchButton_Click(object sender, RoutedEventArgs e)
         {
-            //routers.Clear();
+            // Получаем диапазон IP
             string remoteHostsStr = IPRangeTextBox.Text.ToString();
 
+            // Проверка, что строка не пустая
             if (remoteHostsStr == null)
             {
                 MessageBox.Show("No hosts");
                 return;
             }
 
+            // Разделяем диапазон на 2 (начальный-конечный IP)
             string[] remoteHosts = remoteHostsStr.Split('-');
             if (remoteHosts.Length != 2)
             {
@@ -39,9 +36,11 @@ namespace ICMP_Practice
                 return;
             }
 
+            // Задаем переменные начального и последнего IP
             string startAddr = remoteHosts[0];
             string endAddr = remoteHosts[1];
 
+            // Разделяем начальный IP на октеты
             string[] octets = startAddr.Split('.');
             if (octets.Length != 4)
             {
@@ -49,13 +48,14 @@ namespace ICMP_Practice
                 return;
             }
 
+            // Проверяем октеты, чтобы они не превышали 255 и были не меньше 0
             int[] startAddrOctets = new int[octets.Length];
             for (int i = 0; i < 4; i++)
             {
                 try
                 {
                     startAddrOctets[i] = Convert.ToInt32(octets[i]);
-                    if (startAddrOctets[i] > 256)
+                    if (startAddrOctets[i] > 255 && startAddrOctets[i] < 0)
                     {
                         MessageBox.Show("Wrong start IP address");
                         return;
@@ -68,6 +68,7 @@ namespace ICMP_Practice
                 }
             }
 
+            // Разделяем на октеты конечный IP
             octets = endAddr.Split('.');
             if (octets.Length != 4)
             {
@@ -75,13 +76,14 @@ namespace ICMP_Practice
                 return;
             }
 
+            // Проверяем октеты, чтобы они не превышали 255 и были не меньше 0
             int[] endAddrOctets = new int[octets.Length];
             for (int i = 0; i < 4; i++)
             {
                 try
                 {
                     endAddrOctets[i] = Convert.ToInt32(octets[i]);
-                    if (endAddrOctets[i] > 256)
+                    if (endAddrOctets[i] > 255 && endAddrOctets[i] < 0)
                     {
                         MessageBox.Show("Wrong end IP address");
                         return;
@@ -94,11 +96,11 @@ namespace ICMP_Practice
                 }
             }
 
-
+            // Создаем списки устройств и роутеров
             List<Device> devices = new List<Device>();
             List<Router> routers = new List<Router>();
 
-
+            // Расчет максимально допустомого количетсва устройств
             int devicesCount =
                 (endAddrOctets[0] - startAddrOctets[0]) * 255 * 255 * 255 +
                 (endAddrOctets[1] - startAddrOctets[1]) * 255 * 255 +
@@ -107,10 +109,10 @@ namespace ICMP_Practice
 
             int[] lastAddrOctets = startAddrOctets;
 
-
+            // Добавляем первое устройство с начальным IP
             devices.Add(new Device(String.Format("{0}.{1}.{2}.{3}", startAddrOctets[0], startAddrOctets[1], startAddrOctets[2], startAddrOctets[3])));
 
-
+            // Циклично добавляем возможные устройства в соответствии с диапазоном
             for (int i = 0; i < devicesCount; i++)
             {
                 lastAddrOctets[3]++;
@@ -138,12 +140,13 @@ namespace ICMP_Practice
                 devices.Add(new Device(newIp));
             }
 
+            // Получаем строку с роутерами
             string routersStr = RouterIPsTextBox.Text;
 
 
 
 
-            /// ---
+            // Разделяем роутеры и распределяем подсети к роутерам и устройства к своим возможным подсетям
             try
             {
                 // Получение данных, разделяя по фигурным скобкам "{данные}"
@@ -186,10 +189,10 @@ namespace ICMP_Practice
                         routers.Add(routerClass);
                     }
                 }
+                // Сохраняем введенные данные в файл
                 SaveData();
 
-                /// ---
-
+                // Посылаем запросы для каждого роутера
                 foreach (Router r in routers)
                 {
                     foreach (Subnet item in r.subnets)
@@ -199,6 +202,7 @@ namespace ICMP_Practice
                 }
                 PingedDevicesListView.Items.Clear();
 
+                // Заполняем таблицу опрошенных устройств
                 foreach (Router r in routers)
                 {
                     foreach (Subnet subnet in r.subnets)
@@ -210,7 +214,7 @@ namespace ICMP_Practice
                         }
                     }
                 }
-
+                // Рисуем граф сети
                 GraphVisual graphVisual = new GraphVisual(routers);
                 graphVisual.Show();
             } catch (Exception ex)
@@ -219,24 +223,41 @@ namespace ICMP_Practice
             }
         }
 
+        // Функция сохранения введенных данных
         void SaveData()
         {
+            // Если строки диапазона и списка роутеров не пустые, то будет сохранять
             if (IPRangeTextBox.Text.Length == 0 && RouterIPsTextBox.Text.Length == 0)
             {
                 return;
             }
+            // Создается вспомогательная переменная класса SaveClass
             SaveClass save = new SaveClass();
             save.subnets = RouterIPsTextBox.Text;
             save.ip_range = IPRangeTextBox.Text;
 
-            string json = JsonConvert.SerializeObject(save, Formatting.Indented);
-            File.WriteAllText("Data.json", json);
+            // С помощью библиотеки Newtonsoft Json сериализуем объект и записывам в файл
+            // Файл будет находиться в папке, где расположена программа
+            try
+            {
+                string json = JsonConvert.SerializeObject(save, Formatting.Indented);
+                File.WriteAllText("Data.json", json);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message);
+                return;
+            }
         }
+
+        // Функция загрузки данных
         void LoadData()
         {
+            // Создаем переменную для приема данных
             string json = "";
             try
             {
+                // Читаем данные из файла
                 json = File.ReadAllText("Data.json");
             }
             catch (Exception ex)
@@ -244,14 +265,21 @@ namespace ICMP_Practice
                 MessageBox.Show("ERROR:\n" + ex.Message);
                 return;
             }
-
+            // Если данные есть, то пытаемся их загрузить
             if (json.Length == 0)
             {
                 return;
             }
 
-            save_class = JsonConvert.DeserializeObject<SaveClass>(json);
-            RouterIPsTextBox.Clear();
+            try
+            {
+                save_class = JsonConvert.DeserializeObject<SaveClass>(json);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message);
+                return;
+            }
 
             IPRangeTextBox.Text = save_class.ip_range;
             RouterIPsTextBox.Text = save_class.subnets;
@@ -261,10 +289,14 @@ namespace ICMP_Practice
 
         }
 
+        // Функция, отвечающая за отображение примера с двумя роутерами
+        // Все данные заполнены вручную
         private void LaunchExmapleButton_Click(object sender, RoutedEventArgs e)
         {
+            // Очистка массива роутеров
             routers.Clear();
 
+            // Инициализация роутера 1 и добавление в него подсетей и устройств
             Router router1 = new Router();
             router1.name = "192.168.40.1,192.168.41.1,192.168.42.1";
             router1.subnets = new List<Subnet>();
@@ -314,7 +346,7 @@ namespace ICMP_Practice
                 router1.subnets.Add(subnet);
             }
 
-
+            // Инициализация роутера 2 и добавление в него подсетей и устройств
             Router router2 = new Router();
             router2.name = "192.168.45.1,192.168.46.1,192.168.47.1";
             router2.subnets = new List<Subnet>();
@@ -352,13 +384,16 @@ namespace ICMP_Practice
                 router2.subnets.Add(subnet);
             }
 
+            // Добавление роутеров
             routers.Add(router1);
             routers.Add(router2);
 
+            // Отрисовка графа в новом окне
             GraphVisual graphVisual = new GraphVisual(routers);
             graphVisual.Show();
         }
 
+        // Загрузка данных из файла по нажатию кнопки 
         private void LoadDataButton_Click(object sender, RoutedEventArgs e)
         {
             LoadData();

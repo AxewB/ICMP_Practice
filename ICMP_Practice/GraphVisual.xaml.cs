@@ -17,22 +17,19 @@ using System.Windows.Shapes;
 
 namespace ICMP_Practice
 {
-    /// <summary>
-    /// Логика взаимодействия для GraphVisual.xaml
-    /// </summary>
     public partial class GraphVisual : Window
     {
-        Bitmap image;
+        Bitmap image;   // Сохраняем bitmap, для сохранения картинки в формате png
         public GraphVisual(List<Router> routers)
         {
             InitializeComponent();
-            List<Vertex> vertices = new List<Vertex>();
-            List<Edge> edges = new List<Edge>();
+            List<Vertex> vertices = new List<Vertex>(); // Список вершин
+            List<Edge> edges = new List<Edge>();        // Список ребер
 
            
 
-            int devicesCount = 0;
-            int R = 15;
+            int devicesCount = 0;   // Считаем количество устройств для расчета размера картинки
+            int R = 15;             // Задаем радиус эллипса
 
             foreach (Router rout in routers)
             {
@@ -42,36 +39,48 @@ namespace ICMP_Practice
                     {
                         if (device.pinged)
                         {
-                            devicesCount++;
+                            // Если устройство существует, то увеличиваем счетчик
+                            devicesCount++; 
                         }
                     }
                 }
             }
 
-            int j = 1, i = 1, k = 1;
-            Vertex prev_vert = null;
+            int j = 1, i = 1, k = 1;    // Переменные-множители для расположения вершин на
+                                        // определенном расстоянии друг от друга
+            Vertex prev_vert = null;    // Переменная предыдущей вершины, чтобы
+                                        // соединить роутеры между собой
 
-            int bitmapWidth = R * 16 * devicesCount;
-            int bitmapHeight = R * 4 * 4;
-            float main_w = bitmapWidth / routers.Count;
+
+            int bitmapWidth = R * 16 * devicesCount;    // определение ширины картинки
+            int bitmapHeight = R * 4 * 4;               // определение высоты картинки
+            float main_w = bitmapWidth / routers.Count; // делим картинку на количество роутеров
 
             foreach (Router router in routers)
             {
-
+                // Создаем вершину-роутер в центре соответствующей части
                 Vertex rout_vert = new Vertex((int)((main_w * j) - (main_w / 2)), 30, router.name);
-                float router_w = main_w / router.subnets.Count;
 
+                // делим часть роутера на количество подсетей
+                float router_w = main_w / router.subnets.Count; 
+
+                // Если это второй или больше роутер, то соединяем их между собой
                 if (prev_vert != null)
                 {
                     Edge edge = new Edge(rout_vert, prev_vert);
                     edges.Add(edge);
                 }
 
+                // Просматриваем все подсети роутера
                 foreach (Subnet subnet in router.subnets)
                 {
+                    // Создаем вершину-подсеть с центром в своей части 
                     Vertex subnet_vert = new Vertex((int)((router_w*i)-(router_w/2)), 120, subnet.ip);
+
+                    // Создание ребра между подсетью и ротуером
                     Edge edge = new Edge(rout_vert, subnet_vert);
                    
+                    // Считаем количество существующих устройств для подсети
                     int count = 0;
                     foreach (Device device in subnet.devices)
                     {
@@ -80,7 +89,12 @@ namespace ICMP_Practice
                             count++;
                         }
                     }
+
+                    // Делим часть подсетей на количество существующих устройств
                     float sub_w = router_w / count;
+                    
+                    // Если устройство существует, то добавляем вершину и ребро 
+                    // между подсетью и устройством
                     foreach (Device device in subnet.devices)
                     {
                         if (device.pinged)
@@ -93,22 +107,31 @@ namespace ICMP_Practice
 
                         }
                     }
+
+                    // Добавляем вершину и ребро в список
                     vertices.Add(subnet_vert);
                     edges.Add(edge);
                     i++;
-                    prev_vert = rout_vert;
+
+                    // определяем нынешнюю вершину как предыдущую и переходим к следующей
+                    prev_vert = rout_vert; 
                 }
                 vertices.Add(rout_vert);
                 j++;
             }
 
+            // Инициализируем картинку
             DrawGraph drawGraph = new DrawGraph(bitmapWidth, bitmapHeight);
+
+            // Отрисовываем на картинке граф на основе вершин и ребер
             drawGraph.drawALLGraph(vertices, edges);
+
+            // Сохраняем картинку в переменную, и располагаем ее в контроллере Image 
             image = drawGraph.GetBitmap();
             sheet.Source = BitmapToImageSource(drawGraph.GetBitmap());
-            
         }
 
+        // Функция конвертации bitmap в источник для контроллера Image
         BitmapImage BitmapToImageSource(Bitmap bitmap)
         {
             using (MemoryStream memory = new MemoryStream())
@@ -126,6 +149,7 @@ namespace ICMP_Practice
 
         }
 
+        // Функция сохранения графа в формате png при нажатии на кнопку
         private void SavePictureButton_Click(object sender, RoutedEventArgs e)
         {
             try

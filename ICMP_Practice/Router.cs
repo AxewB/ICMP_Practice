@@ -6,6 +6,9 @@ using System.Threading.Tasks;
 
 namespace ICMP_Practice
 {
+    /// <summary>
+    /// Класс роутеров
+    /// </summary>
     public class Router
     {
         public string name { get; set; }
